@@ -1,0 +1,108 @@
+{
+  "site": {
+    "name": "Kavian",
+    "nav": "Main navigation"
+  },
+  "nav": {
+    "world": "World",
+    "work": "Work",
+    "lab": "Lab",
+    "notes": "Notes",
+    "life": "Life",
+    "about": "About"
+  },
+  "world": {
+    "title": "World",
+    "loading": "The train is pulling in",
+    "contentFirst": "Skip to content",
+    "directory": "Directory",
+    "controls": "Controls",
+    "walk": "Walk",
+    "run": "Run",
+    "interact": "Enter a place",
+    "camera": "Pan (god view) / turn (character view)",
+    "rotate": "Rotate",
+    "zoom": "Zoom",
+    "recenter": "Back to character",
+    "close": "Close",
+    "enter": "Enter",
+    "underConstruction": "Under construction",
+    "resetCamera": "Reset camera",
+    "switchView": "Switch view",
+    "godView": "God view",
+    "followView": "Character view",
+    "pan": "Pan",
+    "turn": "Turn camera",
+    "nearFar": "Closer / farther",
+    "keyboard": "Keyboard",
+    "pointer": "Mouse / trackpad",
+    "view": "View",
+    "settings": "Settings",
+    "language": "切换到中文",
+    "immersive": "Immersive mode",
+    "immersiveHint": "Hide the interface and go full screen. Esc to exit",
+    "exitImmersive": "Exit immersive mode",
+    "hintDrag": "Drag to look around"
+  },
+  "clock": {
+    "toggle": "Time of day, season and weather. Open to preview",
+    "previewTitle": "Preview · this visit only",
+    "season": "Season",
+    "weather": "Weather",
+    "reset": "Back to now",
+    "source": "Weather data: Open-Meteo.com",
+    "live": "Live",
+    "liveHint": "Following the real time and weather",
+    "liveCity": "Following the time and weather in {city}"
+  },
+  "phase": {
+    "dawn": "Morning",
+    "midday": "Day",
+    "dusk": "Dusk",
+    "late-night": "Night"
+  },
+  "season": {
+    "spring": "Spring",
+    "summer": "Summer",
+    "autumn": "Autumn",
+    "winter": "Winter"
+  },
+  "weather": {
+    "clear": "Clear",
+    "cloudy": "Cloudy",
+    "rain": "Rain",
+    "snow": "Snow"
+  },
+  "places": {
+    "station": {
+      "name": "Seaside Station",
+      "hint": "Way in"
+    },
+    "pier": {
+      "name": "Pier",
+      "hint": "Travel, diving and life"
+    },
+    "work": {
+      "name": "Workshop",
+      "hint": "Work and projects"
+    },
+    "lab": {
+      "name": "Shed",
+      "hint": "Things I'm tinkering with"
+    },
+    "notes": {
+      "name": "Grove Library",
+      "hint": "Notes and thinking"
+    },
+    "home": {
+      "name": "Cabin",
+      "hint": "About, résumé and contact"
+    }
+  },
+  "about": {
+    "title": "About",
+    "lede": "Clouds pile up after noon.",
+    "body": "Nothing here yet. The site is being built piece by piece; the first post is on its way.",
+    "back": "Back to the world"
+  }
+}

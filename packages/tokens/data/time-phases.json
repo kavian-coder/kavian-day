@@ -1,0 +1,69 @@
+{
+  "version": 2,
+  "note": "四个时段完整覆盖一天；交界处平滑混合光照。",
+  "anchors": [
+    "noon",
+    "dawn",
+    "dusk",
+    "night"
+  ],
+  "phases": [
+    {
+      "id": "dawn",
+      "zh": "清晨",
+      "en": "Morning",
+      "start": "05:00",
+      "end": "09:00",
+      "ui": "dawn",
+      "light": {
+        "dawn": 0.65,
+        "noon": 0.35
+      },
+      "stars": 0,
+      "windows": 0.1
+    },
+    {
+      "id": "midday",
+      "zh": "白天",
+      "en": "Day",
+      "start": "09:00",
+      "end": "17:00",
+      "ui": "noon",
+      "light": {
+        "noon": 1
+      },
+      "stars": 0,
+      "windows": 0
+    },
+    {
+      "id": "dusk",
+      "zh": "黄昏",
+      "en": "Dusk",
+      "start": "17:00",
+      "end": "19:00",
+      "ui": "dusk",
+      "light": {
+        "dusk": 0.85,
+        "night": 0.15
+      },
+      "stars": 0.15,
+      "windows": 0.65
+    },
+    {
+      "id": "late-night",
+      "zh": "夜晚",
+      "en": "Night",
+      "start": "19:00",
+      "end": "05:00",
+      "ui": "night",
+      "light": {
+        "night": 1
+      },
+      "stars": 1,
+      "windows": 0.8
+    }
+  ],
+  "optional": {
+    "followSun": "有经纬度时，可以把黎明、清晨、傍晚、黄昏的边界按当天真实日出日落平移（每段最多平移 60 分钟），其余时段保持固定时间。默认关闭。"
+  }
+}

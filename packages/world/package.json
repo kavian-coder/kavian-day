@@ -1,0 +1,17 @@
+{
+  "name": "@kavian/world",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Three.js 世界：场景、光照、天气、角色移动与镜头。不依赖 Vue。",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@kavian/tokens": "workspace:*",
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.185.0"
+  }
+}

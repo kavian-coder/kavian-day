@@ -1,0 +1,4 @@
+# Cloudflare Pages：构建命令 `pnpm install && pnpm build`，输出目录如下。
+name = "kavian-day"
+compatibility_date = "2026-10-01"
+pages_build_output_dir = "apps/site/.output/public"

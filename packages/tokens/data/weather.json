@@ -1,0 +1,106 @@
+{
+  "version": 2,
+  "source": "Open-Meteo current.weather_code（WMO 代码），由 /api/env 按访客大致位置查询，按 0.1° 网格缓存 30 分钟。拿不到时按季节概率每天随机一次（以访客本地日期为种子，同一天内保持一致）。",
+  "states": {
+    "clear": {
+      "zh": "晴",
+      "en": "Clear",
+      "sky": "clear",
+      "clouds": 0.2,
+      "particles": null,
+      "light": 1.0,
+      "sound": null
+    },
+    "cloudy": {
+      "zh": "多云",
+      "en": "Cloudy",
+      "sky": "overcast",
+      "clouds": 0.9,
+      "particles": null,
+      "light": 0.8,
+      "sound": "wind-soft"
+    },
+    "rain": {
+      "zh": "雨",
+      "en": "Rain",
+      "sky": "overcast",
+      "clouds": 1,
+      "particles": "rain-light",
+      "light": 0.7,
+      "puddles": true,
+      "sound": "rain-light"
+    },
+    "snow": {
+      "zh": "雪",
+      "en": "Snow",
+      "sky": "overcast",
+      "clouds": 0.9,
+      "particles": "snow",
+      "light": 0.85,
+      "sound": "hush",
+      "regions": [
+        "mountain"
+      ],
+      "elsewhere": "rain"
+    }
+  },
+  "wmo": {
+    "0": "clear",
+    "1": "cloudy",
+    "2": "cloudy",
+    "3": "cloudy",
+    "45": "cloudy",
+    "48": "cloudy",
+    "51": "rain",
+    "53": "rain",
+    "55": "rain",
+    "56": "rain",
+    "57": "rain",
+    "61": "rain",
+    "63": "rain",
+    "65": "rain",
+    "66": "rain",
+    "67": "rain",
+    "71": "snow",
+    "73": "snow",
+    "75": "snow",
+    "77": "snow",
+    "80": "rain",
+    "81": "rain",
+    "82": "rain",
+    "85": "snow",
+    "86": "snow",
+    "95": "rain",
+    "96": "rain",
+    "99": "rain"
+  },
+  "fallbackOdds": {
+    "spring": {
+      "clear": 0.35,
+      "cloudy": 0.5,
+      "rain": 0.15
+    },
+    "summer": {
+      "clear": 0.4,
+      "cloudy": 0.38,
+      "rain": 0.21999999999999997
+    },
+    "autumn": {
+      "clear": 0.4,
+      "cloudy": 0.48000000000000004,
+      "rain": 0.12000000000000001
+    },
+    "winter": {
+      "clear": 0.35,
+      "cloudy": 0.51,
+      "rain": 0.06,
+      "snow": 0.08
+    }
+  },
+  "rules": [
+    "晴天夜晚可以看见星星",
+    "雨雪天窗光更早亮起（windows 权重 +0.3）",
+    "访客可以在世界时钟里临时预览任何天气，不影响真实状态",
+    "页面角落注明：天气数据来自 Open-Meteo.com"
+  ]
+}

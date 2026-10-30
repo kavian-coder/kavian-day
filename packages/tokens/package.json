@@ -1,0 +1,16 @@
+{
+  "name": "@kavian/tokens",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "设计系统的唯一数据来源：颜色、字体、间距、时段、季节、天气。",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens.css": "./generated/tokens.css",
+    "./tokens.json": "./src/tokens.json",
+    "./data/*": "./data/*"
+  },
+  "scripts": {
+    "build": "node scripts/build-css.mjs"
+  }
+}

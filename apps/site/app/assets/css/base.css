@@ -1,0 +1,14 @@
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.8;
+  transition: background-color var(--dur-preview) var(--ease-inout), color var(--dur-preview) var(--ease-inout);
+}
+a { color: var(--accent); }
+*, *::before, *::after { box-sizing: border-box; }
+@media (prefers-reduced-motion: reduce) {
+  body { transition: none; }
+}

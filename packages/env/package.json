@@ -1,0 +1,19 @@
+{
+  "name": "@kavian/env",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "时段、季节、天气的纯计算，不发网络请求。",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@kavian/tokens": "workspace:*"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.0"
+  }
+}

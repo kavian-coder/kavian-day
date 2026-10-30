@@ -1,0 +1,14 @@
+{
+  "name": "@kavian/ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Kw* Vue 组件，与设计系统的组件页一一对应。",
+  "exports": {
+    "./components.css": "./src/components.css",
+    "./*": "./src/*"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  }
+}

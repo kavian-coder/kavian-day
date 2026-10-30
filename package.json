@@ -1,0 +1,25 @@
+{
+  "name": "kavian-day",
+  "private": true,
+  "description": "Kavian 的个人世界：一个会随时间、季节和天气变化的 3D 个人网站。",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "tokens": "pnpm --filter @kavian/tokens build",
+    "dev": "pnpm tokens && pnpm --filter site dev",
+    "build": "pnpm tokens && pnpm --filter site generate",
+    "preview": "pnpm --filter site preview",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

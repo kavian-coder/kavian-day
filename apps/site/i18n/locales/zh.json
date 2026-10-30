@@ -1,0 +1,108 @@
+{
+  "site": {
+    "name": "Kavian",
+    "nav": "主导航"
+  },
+  "nav": {
+    "world": "世界",
+    "work": "作品",
+    "lab": "实验",
+    "notes": "笔记",
+    "life": "生活",
+    "about": "关于"
+  },
+  "world": {
+    "title": "世界",
+    "loading": "列车正在进站",
+    "contentFirst": "先看内容",
+    "directory": "快捷目录",
+    "controls": "操作说明",
+    "walk": "走",
+    "run": "跑",
+    "interact": "进入地点",
+    "camera": "平移（上帝视角）/ 转镜头（角色视角）",
+    "rotate": "旋转",
+    "zoom": "缩放",
+    "recenter": "回到角色",
+    "close": "关闭",
+    "enter": "进入",
+    "underConstruction": "施工中",
+    "resetCamera": "回到默认视角",
+    "switchView": "切换视角",
+    "godView": "上帝视角",
+    "followView": "角色视角",
+    "pan": "平移",
+    "turn": "转镜头",
+    "nearFar": "拉近 / 拉远",
+    "keyboard": "键盘",
+    "pointer": "鼠标 / 触控板",
+    "view": "视角",
+    "settings": "设置",
+    "language": "Switch to English",
+    "immersive": "沉浸模式",
+    "immersiveHint": "收起界面并全屏，Esc 退出",
+    "exitImmersive": "退出沉浸模式",
+    "hintDrag": "拖动看看四周"
+  },
+  "clock": {
+    "toggle": "时段、季节和天气，点开可以预览",
+    "previewTitle": "预览时段 · 只影响这次浏览",
+    "season": "季节",
+    "weather": "天气",
+    "reset": "回到现在",
+    "source": "天气数据：Open-Meteo.com",
+    "live": "实时",
+    "liveHint": "跟着真实的时间和天气",
+    "liveCity": "跟着{city}的时间和天气"
+  },
+  "phase": {
+    "dawn": "清晨",
+    "midday": "白天",
+    "dusk": "黄昏",
+    "late-night": "夜晚"
+  },
+  "season": {
+    "spring": "春",
+    "summer": "夏",
+    "autumn": "秋",
+    "winter": "冬"
+  },
+  "weather": {
+    "clear": "晴",
+    "cloudy": "多云",
+    "rain": "雨",
+    "snow": "雪"
+  },
+  "places": {
+    "station": {
+      "name": "海边车站",
+      "hint": "世界入口"
+    },
+    "pier": {
+      "name": "栈桥码头",
+      "hint": "旅行、潜水与生活片段"
+    },
+    "work": {
+      "name": "造物间",
+      "hint": "作品与项目"
+    },
+    "lab": {
+      "name": "试验棚",
+      "hint": "正在折腾的小东西"
+    },
+    "notes": {
+      "name": "林间书屋",
+      "hint": "笔记与思考"
+    },
+    "home": {
+      "name": "小屋",
+      "hint": "关于我、简历与联系方式"
+    }
+  },
+  "about": {
+    "title": "关于我",
+    "lede": "Clouds pile up after noon.",
+    "body": "这里还空着。网站正在一点点搭起来，第一篇内容在路上。",
+    "back": "回到世界"
+  }
+}

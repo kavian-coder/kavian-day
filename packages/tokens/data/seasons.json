@@ -1,0 +1,113 @@
+{
+ "version": 2,
+ "note": "季节按访客本地日期和所在半球。纬度 < 0 时月份对调；|纬度| < 15° 时全世界视为常夏（山间也不下雪），因为当地本来没有四季。拿不到纬度时按北半球。",
+ "months": {
+  "north": {
+   "spring": [
+    3,
+    4,
+    5
+   ],
+   "summer": [
+    6,
+    7,
+    8
+   ],
+   "autumn": [
+    9,
+    10,
+    11
+   ],
+   "winter": [
+    12,
+    1,
+    2
+   ]
+  },
+  "south": {
+   "spring": [
+    9,
+    10,
+    11
+   ],
+   "summer": [
+    12,
+    1,
+    2
+   ],
+   "autumn": [
+    3,
+    4,
+    5
+   ],
+   "winter": [
+    6,
+    7,
+    8
+   ]
+  }
+ },
+ "regions": {
+  "coast": {
+   "zh": "海边",
+   "rule": "常夏：只换花期、光线和海水颜色，不下雪",
+   "spring": {
+    "layers": [
+     "flowers-coast"
+    ],
+    "note": "凤凰木和三角梅开花，海水最清"
+   },
+   "summer": {
+    "layers": [],
+    "note": "默认画面：浓绿、强光、大积云"
+   },
+   "autumn": {
+    "layers": [
+     "foliage-coast-dry"
+    ],
+    "note": "草地略黄，台风季多云"
+   },
+   "winter": {
+    "layers": [
+     "light-cool"
+    ],
+    "note": "光线偏冷、海水偏蓝，植被不变"
+   }
+  },
+  "mountain": {
+   "zh": "山间",
+   "rule": "完整四季",
+   "spring": {
+    "layers": [
+     "foliage-spring",
+     "blossom"
+    ],
+    "particles": "petals",
+    "note": "嫩绿、花树"
+   },
+   "summer": {
+    "layers": [],
+    "note": "默认画面：浓绿"
+   },
+   "autumn": {
+    "layers": [
+     "foliage-autumn"
+    ],
+    "particles": "leaves",
+    "note": "红黄叶"
+   },
+   "winter": {
+    "layers": [
+     "foliage-bare",
+     "snow-ground",
+     "snow-roof"
+    ],
+    "particles": "snow",
+    "note": "落叶、积雪，雨在这里变成雪"
+   }
+  }
+ },
+ "scenes": {
+  "note": "每个场景声明自己属于哪个区域；同一场景可以分前后景属于不同区域（例如海边场景的远山会积雪）。"
+ }
+}
