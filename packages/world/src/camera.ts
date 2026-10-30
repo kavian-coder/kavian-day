@@ -13,6 +13,7 @@
  * 键盘只管走（WASD / 方向键，Shift 跑）和切换视角（V）；镜头方向只由鼠标 / 触控板控制。
  */
 import { Vector3, type PerspectiveCamera } from 'three'
+import { WORLD } from './layout'
 
 export type ViewMode = 'god' | 'follow'
 
@@ -33,7 +34,8 @@ export interface CameraRig {
   dispose: () => void
 }
 
-const LIMIT = { minX: -155, maxX: 195, minZ: -150, maxZ: 135 }
+/** 上帝视角平移时，看着的点不能离开世界圈（最远到最外面的陆地） */
+const FOCUS_R = WORLD.r
 const RANGE: Record<ViewMode, { pitch: [number, number]; dist: [number, number] }> = {
   god: { pitch: [0.15, 1.56], dist: [10, 240] },
   follow: { pitch: [-0.2, 1.1], dist: [3.5, 22] },
@@ -205,10 +207,13 @@ export function createCameraRig(
       // 镜头方向只由鼠标 / 触控板控制，不会自己转
     } else if (rig.follow) rig.focus.lerp(o.target, 1 - Math.pow(0.002, dt))
     else {
-      const cx=(LIMIT.minX+LIMIT.maxX)/2, cz=(LIMIT.minZ+LIMIT.maxZ)/2
-      const radius=Math.max(LIMIT.maxX-LIMIT.minX,LIMIT.maxZ-LIMIT.minZ)/2
-      const dx=rig.focus.x-cx,dz=rig.focus.z-cz,d=Math.hypot(dx,dz)
-      if(d>radius){rig.focus.x=cx+dx/d*radius;rig.focus.z=cz+dz/d*radius}
+      const dx = rig.focus.x - WORLD.x
+      const dz = rig.focus.z - WORLD.z
+      const d = Math.hypot(dx, dz)
+      if (d > FOCUS_R) {
+        rig.focus.x = WORLD.x + (dx / d) * FOCUS_R
+        rig.focus.z = WORLD.z + (dz / d) * FOCUS_R
+      }
       rig.focus.y += (Math.max(0, o.groundAt(rig.focus.x, rig.focus.z)) + 1.2 - rig.focus.y) * (1 - Math.pow(0.01, dt))
     }
     const cp = Math.cos(rig.pitch)

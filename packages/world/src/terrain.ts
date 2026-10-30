@@ -11,7 +11,7 @@ import {
   RedFormat,
 } from 'three'
 import { GLSL_NOISE, type Kit, type Season } from './kit'
-import { PATHS, RIVER, TERRAIN, distTo, heightAt, inlandFactor, railNear, shore, offshoreHeight } from './layout'
+import { PATHS, RIVER, TERRAIN, WORLD, distTo, heightAt, inlandFactor, railNear, shore } from './layout'
 import { fbm, lerp, smoothstep } from './noise'
 
 export interface Terrain {
@@ -63,7 +63,7 @@ const MOUNTAIN: Record<Season, Color> = {
 
 export function createTerrain(kit: Kit, forest: (x: number, z: number) => number): Terrain {
   const { minX, maxX, minZ, maxZ } = TERRAIN
-  const seg = kit.high ? TERRAIN.seg : 170
+  const seg = kit.high ? TERRAIN.seg : 230
   const N = seg + 1
   const dx = (maxX - minX) / seg
   const dz = (maxZ - minZ) / seg
@@ -87,30 +87,47 @@ export function createTerrain(kit: Kit, forest: (x: number, z: number) => number
       const h = heightAt(x, z)
       heights[k] = h
       pos.set([x, h, z], k * 3)
+      shoreD[k] = shore(x, z)
+      varN[k] = fbm(x * 0.18 + 40, z * 0.18) * 0.5 + 0.5
+      // 世界圈外只有海：小路、铁路、河、树都不会到这里，省掉这些距离计算
+      if (Math.hypot(x - WORLD.x, z - WORLD.z) > WORLD.r + 12) {
+        pathD[k] = 3
+        railD[k] = 4
+        riverD[k] = 5
+        continue
+      }
       let pd = 3
       for (const p of PATHS) pd = Math.min(pd, distTo(x, z, p, pd))
       pathD[k] = pd
       const rn = railNear(x, z, 4)
       railD[k] = rn && rn.tunnel < 0.5 ? rn.d : 4
-      shoreD[k] = shore(x, z)
       riverD[k] = distTo(x, z, RIVER, 5)
       inland[k] = inlandFactor(x, z)
       forestK[k] = forest(x, z)
-      varN[k] = fbm(x * 0.18 + 40, z * 0.18) * 0.5 + 0.5
     }
   }
-  const idx: number[] = []
+  // 四个角都在 HIDDEN 米以下的格子不画：那里的水已经完全不透明（water.ts 里 10 米就不透明了），
+  // 海底看不见，深海那一大片三角形省掉
+  const HIDDEN = -12
+  const idx = new Uint32Array(seg * seg * 6)
+  let ni = 0
   for (let j = 0; j < seg; j++)
     for (let i = 0; i < seg; i++) {
       const a = j * N + i
       const b = a + 1
       const c = a + N
       const d = c + 1
-      idx.push(a, c, b, b, c, d)
+      if (heights[a]! < HIDDEN && heights[b]! < HIDDEN && heights[c]! < HIDDEN && heights[d]! < HIDDEN) continue
+      idx[ni++] = a
+      idx[ni++] = c
+      idx[ni++] = b
+      idx[ni++] = b
+      idx[ni++] = c
+      idx[ni++] = d
     }
   const geo = kit.track(new BufferGeometry())
   geo.setAttribute('position', new BufferAttribute(pos, 3))
-  geo.setIndex(idx)
+  geo.setIndex(new BufferAttribute(idx.slice(0, ni), 1))
   geo.computeVertexNormals()
   const nor = geo.getAttribute('normal')
   const colors = new Float32Array(N * N * 3)
@@ -193,47 +210,13 @@ export function createTerrain(kit: Kit, forest: (x: number, z: number) => number
   const mesh = new Mesh(geo, mat)
   mesh.receiveShadow = true
 
-  // Extend only the underwater apron. Land keeps its existing resolution; the apron
-  // has eight coarse rings and shares the material, adding one draw instead of a huge terrain.
-  const padding = 64
-  const extentX = dx * padding, extentZ = dz * padding
-  const outerN = N + padding * 2
-  const half = new Uint16Array(outerN * outerN)
-  for (let j = 0; j < outerN; j++) for (let i = 0; i < outerN; i++) {
-    const ci = i - padding, cj = j - padding
-    const h = ci >= 0 && ci < N && cj >= 0 && cj < N
-      ? heights[cj * N + ci]!
-      : offshoreHeight(minX + ci * dx, minZ + cj * dz)
-    half[j * outerN + i] = DataUtils.toHalfFloat(h)
-  }
-  const heightTex = kit.track(new DataTexture(half, outerN, outerN, RedFormat, HalfFloatType))
+  // 高度图：和地形网格一样大。网格已经铺到世界圈外 45 米，边上全是深海，水面着色器在网格外也当深海处理
+  const half = new Uint16Array(N * N)
+  for (let k = 0; k < N * N; k++) half[k] = DataUtils.toHalfFloat(heights[k]!)
+  const heightTex = kit.track(new DataTexture(half, N, N, RedFormat, HalfFloatType))
   heightTex.minFilter = heightTex.magFilter = LinearFilter
   heightTex.needsUpdate = true
-  const heightBounds = { minX: minX - extentX, minZ: minZ - extentZ, width: maxX - minX + extentX * 2, depth: maxZ - minZ + extentZ * 2 }
-  const apronPos: number[] = [], apronColors: number[] = [], apronIndex: number[] = []
-  const border: [number, number, number][] = []
-  for(let i=0;i<seg;i++) border.push([minX+i*dx,minZ,heights[i]!])
-  for(let j=0;j<seg;j++) border.push([maxX,minZ+j*dz,heights[j*N+seg]!])
-  for(let i=seg;i>0;i--) border.push([minX+i*dx,maxZ,heights[seg*N+i]!])
-  for(let j=seg;j>0;j--) border.push([minX,minZ+j*dz,heights[j*N]!])
-  const count=border.length, rings=8
-  for(let r=0;r<=rings;r++) for(let i=0;i<count;i++) {
-    const [bx,bz,bh]=border[i]!, t=r/rings
-    const cx=(minX+maxX)/2, cz=(minZ+maxZ)/2
-    const radius=Math.hypot((maxX-minX)/2,(maxZ-minZ)/2)+Math.min(extentX,extentZ)
-    const vx=bx-cx,vz=bz-cz,length=Math.hypot(vx,vz)
-    const x=lerp(bx,cx+vx/length*radius,t)
-    const z=lerp(bz,cz+vz/length*radius,t)
-    const h=r===0?bh:offshoreHeight(x,z)
-    apronPos.push(x,h,z)
-    const c=SEA_SAND.clone().lerp(DEEP_SAND,smoothstep(-4,-12,h));apronColors.push(c.r,c.g,c.b)
-    if(r<rings){const a=r*count+i,b=r*count+(i+1)%count,c=a+count,d=b+count;apronIndex.push(a,b,c,b,d,c)}
-  }
-  const apronGeo=kit.track(new BufferGeometry())
-  apronGeo.setAttribute('position',new BufferAttribute(new Float32Array(apronPos),3))
-  apronGeo.setAttribute('color',new BufferAttribute(new Float32Array(apronColors),3))
-  apronGeo.setIndex(apronIndex);apronGeo.computeVertexNormals()
-  const apron=new Mesh(apronGeo,mat);apron.name='offshore-apron';apron.receiveShadow=true;mesh.add(apron)
+  const heightBounds = { minX, minZ, width: maxX - minX, depth: maxZ - minZ }
 
   function groundAt(x: number, z: number) {
     const fx = Math.min(Math.max((x - minX) / dx, 0), seg - 0.0001)

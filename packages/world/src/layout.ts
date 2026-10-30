@@ -14,8 +14,36 @@ import { clamp, fbm, lerp, rng, smoothstep } from './noise'
 
 export type V2 = readonly [number, number]
 
-/** 地形网格覆盖的范围（包括岛外的海底） */
-export const TERRAIN = { minX: -178, maxX: 206, minZ: -136, maxZ: 150, seg: 320 } as const
+/**
+ * 世界圈：只存在于代码里的边界，世界里看不出来。
+ * - 所有陆地、小岛、桥、地标都放在离圆心 WORLD.r 以内。
+ * - 圈外先留一圈自然的礁盘浅水（REEF 米），然后海底慢慢落进深海；落下去的半径带低频起伏，不是正圆。
+ * - 深海的水不透明、颜色不再随深度变化，所以圈外是一片没有尽头的同色大海。
+ * 以后世界变大，只改 r：地形网格、水、镜头范围都跟着变。
+ */
+export const WORLD = { x: 18, z: 14, r: 180 } as const
+/** 深海海底：比这更深，水的颜色就不再变化（见 water.ts） */
+export const ABYSS = -24
+/** 陆地外留给礁盘浅水的宽度，之后才开始往深海落 */
+const REEF = 16
+const SHELF_IN = WORLD.r + REEF
+/** 从开始下落到完全是深海的宽度 */
+const SHELF_OUT = SHELF_IN + 40
+/** 下落半径的起伏幅度（米） */
+const SHELF_WOBBLE = 10
+
+/** 地形网格覆盖的范围：深海再往外留一截，网格边缘永远在不透明的深水下面 */
+const TERRAIN_HALF = SHELF_OUT + SHELF_WOBBLE + 8
+export const TERRAIN = {
+  minX: WORLD.x - TERRAIN_HALF,
+  maxX: WORLD.x + TERRAIN_HALF,
+  minZ: WORLD.z - TERRAIN_HALF,
+  maxZ: WORLD.z + TERRAIN_HALF,
+  seg: 460,
+} as const
+
+/** 有陆地的范围：海岸距离场和地形高度在这里预先算好缓存，范围外按公式算（都是海） */
+export const CONTENT = { minX: -178, maxX: 206, minZ: -136, maxZ: 150 } as const
 
 // ---------- 折线工具
 /** 只要距离，不要位置参数；用包围盒跳过远处线段，比 distToPolyline 快。 */
@@ -153,23 +181,23 @@ function isletShore(i: (typeof ISLETS)[number], x: number, z: number) {
 /** 主岛的有向距离场（正 = 岛上），1.5 米一格，启动时算一次 */
 const SDF = (() => {
   const step = 1.5
-  const nx = Math.ceil((TERRAIN.maxX - TERRAIN.minX) / step) + 1
-  const nz = Math.ceil((TERRAIN.maxZ - TERRAIN.minZ) / step) + 1
+  const nx = Math.ceil((CONTENT.maxX - CONTENT.minX) / step) + 1
+  const nz = Math.ceil((CONTENT.maxZ - CONTENT.minZ) / step) + 1
   const data = new Float32Array(nx * nz)
   const P = MAIN_COAST
   const n = P.length - 1
   // 线段分桶，加快最近距离的查询
   const B = 12
-  const bx = Math.ceil((TERRAIN.maxX - TERRAIN.minX) / B) + 1
-  const bz = Math.ceil((TERRAIN.maxZ - TERRAIN.minZ) / B) + 1
+  const bx = Math.ceil((CONTENT.maxX - CONTENT.minX) / B) + 1
+  const bz = Math.ceil((CONTENT.maxZ - CONTENT.minZ) / B) + 1
   const buckets: number[][] = Array.from({ length: bx * bz }, () => [])
   for (let i = 0; i < n; i++) {
     const a = P[i]!
     const b = P[i + 1]!
-    const i0 = Math.floor((Math.min(a[0], b[0]) - TERRAIN.minX) / B)
-    const i1 = Math.floor((Math.max(a[0], b[0]) - TERRAIN.minX) / B)
-    const j0 = Math.floor((Math.min(a[1], b[1]) - TERRAIN.minZ) / B)
-    const j1 = Math.floor((Math.max(a[1], b[1]) - TERRAIN.minZ) / B)
+    const i0 = Math.floor((Math.min(a[0], b[0]) - CONTENT.minX) / B)
+    const i1 = Math.floor((Math.max(a[0], b[0]) - CONTENT.minX) / B)
+    const j0 = Math.floor((Math.min(a[1], b[1]) - CONTENT.minZ) / B)
+    const j1 = Math.floor((Math.max(a[1], b[1]) - CONTENT.minZ) / B)
     for (let jj = j0; jj <= j1; jj++) for (let ii = i0; ii <= i1; ii++) buckets[jj * bx + ii]!.push(i)
   }
   const segDist = (x: number, z: number, i: number) => {
@@ -181,7 +209,7 @@ const SDF = (() => {
     return Math.hypot(x - (a[0] + dx * t), z - (a[1] + dz * t))
   }
   for (let j = 0; j < nz; j++) {
-    const z = TERRAIN.minZ + j * step
+    const z = CONTENT.minZ + j * step
     // 这一行和海岸线的交点（奇偶规则判断里外）
     const xs: number[] = []
     for (let i = 0; i < n; i++) {
@@ -191,12 +219,12 @@ const SDF = (() => {
     }
     xs.sort((p, q) => p - q)
     for (let i = 0; i < nx; i++) {
-      const x = TERRAIN.minX + i * step
+      const x = CONTENT.minX + i * step
       let inside = false
       for (const c of xs) if (c < x) inside = !inside
       // 从所在的桶往外一圈圈找，找到之后再多看一圈
-      const ci = Math.floor((x - TERRAIN.minX) / B)
-      const cj = Math.floor((z - TERRAIN.minZ) / B)
+      const ci = Math.floor((x - CONTENT.minX) / B)
+      const cj = Math.floor((z - CONTENT.minZ) / B)
       let best = Infinity
       for (let ring = 0; ring < Math.max(bx, bz); ring++) {
         for (let jj = cj - ring; jj <= cj + ring; jj++)
@@ -214,11 +242,16 @@ const SDF = (() => {
   return { data, nx, nz, step }
 })()
 
-function mainShore(x: number, z: number) {
+function mainShore(x: number, z: number): number {
   const { data, nx, nz, step } = SDF
-  const fx = (x - TERRAIN.minX) / step
-  const fz = (z - TERRAIN.minZ) / step
-  if (fx < 0 || fz < 0 || fx >= nx - 1 || fz >= nz - 1) return -80
+  const fx = (x - CONTENT.minX) / step
+  const fz = (z - CONTENT.minZ) / step
+  if (fx < 0 || fz < 0 || fx >= nx - 1 || fz >= nz - 1) {
+    // 缓存范围外：取最近的边缘点的值，再减去离开边缘的距离（陆地都在里面，所以这样是连续的）
+    const cx = Math.min(Math.max(x, CONTENT.minX), CONTENT.maxX - step * 1.01)
+    const cz = Math.min(Math.max(z, CONTENT.minZ), CONTENT.maxZ - step * 1.01)
+    return mainShore(cx, cz) - Math.hypot(x - cx, z - cz)
+  }
   const i = Math.floor(fx)
   const j = Math.floor(fz)
   const tx = fx - i
@@ -369,13 +402,12 @@ function seaFloor(s: number, x: number, z: number) {
   h = lerp(h, Math.max(h, -2.4), lagoon)
   const crest = Math.exp(-((dd - (dv.r + 27)) ** 2) / 22) * (1 + 0.6 * fbm(x * 0.2, z * 0.2))
   h = Math.max(h, lerp(h, -0.55, clamp(crest, 0, 1)))
+  // 世界圈：礁盘外缘慢慢落到深海。半径用低频噪声起伏，看起来是礁盘自然的边，不是一个圆
+  const dW = Math.hypot(x - WORLD.x, z - WORLD.z) + SHELF_WOBBLE * fbm(x * 0.011 + 3.1, z * 0.011 - 5.7)
+  h = Math.min(h, lerp(h, ABYSS, smoothstep(SHELF_IN, SHELF_OUT, dW)))
   return h
 }
 
-/** The offshore apron uses the same island distance field, beyond the detailed land mesh. */
-export function offshoreHeight(x: number, z: number) {
-  return Math.min(-0.02, seaFloor(Math.min(-0.01, shore(x, z)), x, z))
-}
 
 /** 坡地小镇：从海湾北岸往上的缓坡 */
 function townSlope(x: number, z: number) {
@@ -464,17 +496,17 @@ function baseHeightRaw(x: number, z: number) {
 // 地形查询很频繁，算一张 0.75 米的缓存
 const BASE = (() => {
   const step = 0.75
-  const nx = Math.ceil((TERRAIN.maxX - TERRAIN.minX) / step) + 1
-  const nz = Math.ceil((TERRAIN.maxZ - TERRAIN.minZ) / step) + 1
+  const nx = Math.ceil((CONTENT.maxX - CONTENT.minX) / step) + 1
+  const nz = Math.ceil((CONTENT.maxZ - CONTENT.minZ) / step) + 1
   const data = new Float32Array(nx * nz)
-  for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) data[j * nx + i] = baseHeightRaw(TERRAIN.minX + i * step, TERRAIN.minZ + j * step)
+  for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) data[j * nx + i] = baseHeightRaw(CONTENT.minX + i * step, CONTENT.minZ + j * step)
   return { data, nx, nz, step }
 })()
 function baseHeight(x: number, z: number) {
   const { data, nx, nz, step } = BASE
-  const fx = (x - TERRAIN.minX) / step
-  const fz = (z - TERRAIN.minZ) / step
-  if (fx < 0 || fz < 0 || fx >= nx - 1 || fz >= nz - 1) return -18
+  const fx = (x - CONTENT.minX) / step
+  const fz = (z - CONTENT.minZ) / step
+  if (fx < 0 || fz < 0 || fx >= nx - 1 || fz >= nz - 1) return baseHeightRaw(x, z)
   const i = Math.floor(fx)
   const j = Math.floor(fz)
   const tx = fx - i
@@ -601,8 +633,8 @@ const PATH_KEYS: V2[][] = [
   [[22, 26.5], [27, 30], [30, 34], [30, PIER.z0 + 1]],
   // 6 去灯塔：沿海湾西岸往西，上岬角
   [[-56, 6], [-76, 10], [-98, 12], [-116, 6], [-126, 3]],
-  // 7 回家：滨海路东头上东坡
-  [[62, -6], [72, -10], [80, -12]],
+  // 7 回家：滨海路东头上东坡，走到家门口前廊的正前方（家的西墙在 x = 78，路不能从墙里穿过去）
+  [[62, -6], [72, -8.5], [84, -7.2]],
   // 8 沙滩公园：从步道穿过铁路到沙滩
   [[-30, 26], [-32, 33], [-34, 41]],
   // 9 去游乐栈桥
@@ -785,6 +817,8 @@ export function lotNear(x: number, z: number) {
 }
 
 export function heightAt(x: number, z: number) {
+  // 远离岸边的海里只有海底，不用再查街道、铁路、地块（跨海桥段本来就不改地形）
+  if (shore(x, z) < -16) return baseHeight(x, z)
   const pd = pathDist(x, z, 4)
   let h = preHeight(x, z, pd)
   // 房子地块：地块外 1 米以内是平的，再往外 2.5 米坡回原来的地面；街面不动

@@ -23,7 +23,7 @@ import {
 } from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { gradeY, spherize, type Kit, type Season } from './kit'
-import { PLACES, TERRAIN, pathDist, railNear, shore, forestDensity, inlandFactor, isClear, place, RIVER, distTo, PATHS, townFactor } from './layout'
+import { PLACES, CONTENT, pathDist, railNear, shore, forestDensity, inlandFactor, isClear, place, RIVER, distTo, PATHS, townFactor } from './layout'
 import { rng } from './noise'
 import { LAYER_NO_REFLECT } from './water'
 
@@ -618,7 +618,8 @@ export function createNature(
 
   // ---------- 摆放
   const step = kit.high ? 3.2 : 4.4
-  const { minX, maxX, minZ, maxZ } = TERRAIN
+  // 只在有陆地的范围里撒（世界圈外都是深海）
+  const { minX, maxX, minZ, maxZ } = CONTENT
   for (let gx = minX + 2; gx < maxX - 2; gx += step)
     for (let gz = minZ + 2; gz < maxZ - 2; gz += step) {
       const x = gx + R() * step

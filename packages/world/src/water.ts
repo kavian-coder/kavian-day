@@ -26,7 +26,7 @@ import {
   type WebGLRenderer,
 } from 'three'
 import type { Kit } from './kit'
-import { TERRAIN, riverSurface, shore } from './layout'
+import { ABYSS, TERRAIN, riverSurface, shore } from './layout'
 
 /** 不参与反射的东西放在这些图层上（海面自己、水下的鱼和珊瑚、草和花这类小东西） */
 export const LAYER_NO_REFLECT = 1
@@ -52,11 +52,9 @@ varying vec3 vW;
 varying float vDist;
 float ground(vec2 p) {
   vec2 uv = (p - hBox.xy) / hBox.zw;
-  if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return -24.0;
-  float h = texture2D(hTex, uv).r;
-  vec2 edgeMeters = min(uv, 1.0 - uv) * hBox.zw;
-  float interior = smoothstep(0.0, 18.0, min(edgeMeters.x, edgeMeters.y));
-  return mix(-24.0, h, interior);
+  // 地形网格外面是世界圈外的深海；网格边上本来就已经是深海，所以这里没有接缝
+  if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return ${ABYSS.toFixed(1)};
+  return texture2D(hTex, uv).r;
 }
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float vnoise(vec2 p) {
@@ -138,7 +136,8 @@ void main() {
   // 水体颜色：越深越蓝
   // 浅处偏青绿、中间是饱和的蓝绿、深处是深蓝
   vec3 mid = mix(shallow, deep, 0.45) * vec3(0.8, 1.05, 1.05);
-  float opticalDepth = max(0.0, depth + (n - 0.5) * 0.25);
+  // 超过 MAX_OPTICAL_DEPTH 米的水颜色完全一样：世界圈外、地形网格外都是同一片深海，看不出边界
+  float opticalDepth = clamp(depth + (n - 0.5) * 0.25, 0.0, 14.0);
   vec3 body = mix(shallow, mid, 1.0 - exp(-opticalDepth * 0.23));
   body = mix(body, deep, 1.0 - exp(-opticalDepth * 0.065));
 
